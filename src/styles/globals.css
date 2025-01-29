@@ -10,4 +10,5 @@
     .bg-gradient-hover {
         @apply bg-gradient-to-r from-pink-500 via-blue-500 to-sky-500 hover:from-sky-500 hover:via-blue-500 hover:to-pink-500
     }
+    
 }
