@@ -10,6 +10,7 @@ import React, {
 } from "react";
 import { data } from "@/constant/products";
 import Icons from "@/components/atoms/icons";
+import { getProducts } from "@/services/products";
 
 const ProductPage = () => {
   // Sebutan variable di react
@@ -20,6 +21,20 @@ const ProductPage = () => {
   /** useRef : hooks untuk membuat referensi ke elemen DOM/Fungsi untuk mengakses elemen DOM */
   const footerRef = useRef();
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [data, setData] = useState([]);
+
+  // useEffect buat ngambil dari API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await getProducts();
+        setData(data.slice(0, 8));
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchProducts();
+  });
 
   // useEffect buat nanganin side effect.efek dari perubahan suatu data yang dijalankan tiap kali halaman load
   useEffect(() => {
@@ -56,7 +71,7 @@ const ProductPage = () => {
   const calculateTotal = useCallback(() => {
     return cart.reduce((total, item) => {
       const product = data.find((product) => product.id === item.id);
-      return total + product.price * item.qty;
+      return total + product?.price * item.qty;
     }, 0);
   }, [cart]);
 
@@ -143,15 +158,18 @@ const ProductPage = () => {
           <h1 className="text-3xl font-bold text-blue-500 uppercase mb-4">
             Products
           </h1>
-          <div className="flex flex-wrap gap-4">
+          <div className="grid grid-cols-2 gap-4">
             {data.map((item) => (
-              <CardProduct key={item.id}>
-                <CardProduct.Header image={item.image} />
-                <CardProduct.Body title={item.title} desc={item.description} />
+              <CardProduct key={item?.id}>
+                <CardProduct.Header image={item?.image} />
+                <CardProduct.Body
+                  title={item?.title}
+                  desc={item?.description}
+                />
                 <CardProduct.Footer
-                  price={item.price}
+                  price={item?.price}
                   handleAddToCart={handleAddToCart}
-                  id={item.id}
+                  id={item?.id}
                 />
               </CardProduct>
             ))}
@@ -160,7 +178,7 @@ const ProductPage = () => {
 
         {/* cart */}
         {cart.length > 0 && (
-          <div className="w-1/2">
+          <div className="w-2/6">
             <h1 className="text-3xl font-bold text-blue-500 mb-4 uppercase">
               Cart
             </h1>
@@ -170,16 +188,18 @@ const ProductPage = () => {
                 return (
                   <div className="flex p-4 border rounded-lg" key={item.id}>
                     <Image
-                      className="rounded object-cover"
+                      className="rounded aspect-square object-contain"
                       width={100}
                       height={100}
-                      src={datas.image}
+                      src={datas?.image}
                       alt="cart image"
                     />
                     <div className="flex justify-between w-full">
                       <div className="flex flex-col justify-between ml-3">
-                        <span className="font-bold text-xl">{datas.title}</span>
-                        <span className="font-semibold">{datas.price}</span>
+                        <span className="font-bold text-xl">
+                          {datas?.title}
+                        </span>
+                        <span className="font-semibold">{datas?.price}</span>
                       </div>
                       <div className="flex flex-col justify-center items-center">
                         <span className="mb-1">Qty</span>
@@ -194,7 +214,7 @@ const ProductPage = () => {
             </div>
             <div className="flex justify-between px-4 py-2 border mt-2 font-semibold rounded-lg">
               <span>Total</span>
-              <span>{cartTotal}</span>
+              <span>${cartTotal}</span>
             </div>
           </div>
         )}

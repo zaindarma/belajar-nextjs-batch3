@@ -11,7 +11,9 @@ const CardProduct = ({ children }) => {
   return (
     <>
       <div className="rounded-lg bg-gradient-aigen shadow-xl p-1">
-        <div className="w-full max-w-xs bg-white rounded-lg">{children}</div>
+        <div className="w-full max-w-xs bg-white rounded-lg h-full">
+          {children}
+        </div>
       </div>
     </>
   );
@@ -23,7 +25,7 @@ function Header({ image }) {
       <Image
         src={image}
         alt="card image"
-        className="p-4 rounded-t-lg w-full"
+        className="p-4 rounded-t-lg w-full aspect-video object-contain"
         width={300}
         height={300}
       />
@@ -35,8 +37,12 @@ function Body({ title, desc }) {
   return (
     <div className="px-5 pb-5">
       <Link href={"#"}>
-        <h3 className="text-3xl font-bold text-slate-900">{title}</h3>
-        <p className="mt-3 text-slate-700 text-base text-justify">{desc}</p>
+        <h3 className="text-3xl font-bold text-slate-900 line-clamp-2">
+          {title}
+        </h3>
+        <p className="mt-3 text-slate-700 text-justify text-lg line-clamp-3">
+          {desc}
+        </p>
       </Link>
     </div>
   );
@@ -44,8 +50,8 @@ function Body({ title, desc }) {
 
 function Footer({ price, handleAddToCart, id }) {
   return (
-    <div className="flex flex-col items-center justify-center px-5 pb-5">
-      <span className="text-2xl font-semibold mb-2">{price}</span>
+    <div className="flex flex-col items-center justify-center px-5 pb-5 bottom-0">
+      <span className="text-2xl font-semibold mb-2">${price}</span>
       <Button
         buttonClassname={"w-full bg-gradient-aigen text-white font-bold"}
         onClick={() => handleAddToCart(id)}
