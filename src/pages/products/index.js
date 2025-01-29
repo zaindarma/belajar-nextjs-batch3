@@ -1,16 +1,15 @@
 import Button from "@/components/atoms/Button";
 import CardProduct from "@/components/molecules/CardProduct";
 import Image from "next/image";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { data } from "@/constant/products";
-import BackToTopButton from "@/components/atoms/icons/BackToTopButton";
 import Icons from "@/components/atoms/icons";
 
 const ProductPage = () => {
   // Sebutan variable di react
   const [username, setUsername] = useState("");
   const [cart, setCart] = useState([]);
-  const [total, setTotal] = useState(0);
+  // const [total, setTotal] = useState(0); // useMemo gabutuh state
 
   /** useRef : hooks untuk membuat referensi ke elemen DOM/Fungsi untuk mengakses elemen DOM */
   const footerRef = useRef();
@@ -45,13 +44,24 @@ const ProductPage = () => {
     }
   };
 
+  /** useMemo : hooks buat nyimpen hasil komputasi(perhitungan)
+   * tujuannya biar fungsi tsb ga perlu dijalanin/dihitung ulang ketika tidak ada perubahan pada state
+   */
+  const cartTotal = useMemo(() => {
+    return cart.reduce((total, item) => {
+      const product = data.find((product) => product.id === item.id);
+      return total + product.price * item.qty;
+    }, 0);
+  }, [cart]);
+
   useEffect(() => {
     if (cart.length > 0) {
-      const sumTotal = cart.reduce((total, item) => {
-        const product = data.find((product) => product.id === item.id);
-        return total + product.price * item.qty;
-      }, 0);
-      setTotal(sumTotal);
+      // const sumTotal = cart.reduce((total, item) => {
+      //   const product = data.find((product) => product.id === item.id);
+      //   return total + product.price * item.qty;
+      // }, 0);
+      // setTotal(sumTotal);
+
       // Simpen data cart ke local storage lalu convert data cart ke JSON karena local storage cuma bisa nyimpen data JSON
       localStorage.setItem("cart", JSON.stringify(cart));
     }
@@ -165,7 +175,7 @@ const ProductPage = () => {
             </div>
             <div className="flex justify-between px-4 py-2 border mt-2 font-semibold rounded-lg">
               <span>Total</span>
-              <span>{total}</span>
+              <span>{cartTotal}</span>
             </div>
           </div>
         )}
