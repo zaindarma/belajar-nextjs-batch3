@@ -13,13 +13,15 @@ import Icons from "@/components/atoms/icons";
 import { getProducts } from "@/services/products";
 import { getCurrentUser } from "@/services/auth";
 import { useRouter } from "next/router";
+import { useLogin } from "@/hooks/useLogin";
+import { formatCurrency } from "@/helpers/util/formatCurrency";
 
 // Endpoint : link backend
 // payload : isi dari link backend
+// hooks : template fungsi
 
 const ProductPage = () => {
   // Sebutan variable di react
-  const [username, setUsername] = useState("");
   const [cart, setCart] = useState([]);
   // const [total, setTotal] = useState(0); // useMemo gabutuh state
 
@@ -28,6 +30,7 @@ const ProductPage = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [data, setData] = useState([]);
   const router = useRouter();
+  const username = useLogin();
 
   // useEffect buat ngambil dari API
   useEffect(() => {
@@ -44,13 +47,6 @@ const ProductPage = () => {
 
   // useEffect buat nanganin side effect.efek dari perubahan suatu data yang dijalankan tiap kali halaman load
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setUsername(getCurrentUser(token));
-    } else {
-      router.push("/login");
-    }
-
     // Ambil data dari local storage lalu parsing, tambahin login || [] biar ga errpr ketika data dari local storage kosong
     setCart(JSON.parse(localStorage.getItem("cart")) || []);
   }, []);
@@ -206,7 +202,9 @@ const ProductPage = () => {
                         <span className="font-bold text-xl">
                           {datas?.title}
                         </span>
-                        <span className="font-semibold">{datas?.price}</span>
+                        <span className="font-semibold">
+                          {formatCurrency(datas?.price)}
+                        </span>
                       </div>
                       <div className="flex flex-col justify-center items-center">
                         <span className="mb-1">Qty</span>
@@ -221,7 +219,7 @@ const ProductPage = () => {
             </div>
             <div className="flex justify-between px-4 py-2 border mt-2 font-semibold rounded-lg">
               <span>Total</span>
-              <span>${cartTotal}</span>
+              <span>{formatCurrency(cartTotal)}</span>
             </div>
           </div>
         )}
