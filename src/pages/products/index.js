@@ -246,16 +246,20 @@ const ProductPage = ({ data }) => {
 
 export default ProductPage;
 
-/** Fungsi untuk mengambil data di sisi server sebelum akhirnya di render ke HTML
- * cocok untuk data-data yang dinamis
+/** SSG(Static site generation) : teknik yang merender halaman pada saat proses build time(npm run build)
+ * dan halaman websitenya bisa di cache jadi ketika user balik lagi ke halaman tsb proses rendernya lebih cepet
+ * teknik ini khusus web yang datanya statis/hardcore/datanya tidak berubah
+ *
+ * build time: proses penyiapan aplikasi disisi server saat di deploy
+ * run time: proses setelah build dimana aplikasi dijalanin di sisi server/browser
  */
-export async function getServerSideProps() {
-  // Cara pertama untuk manggil service satu persatu
+export async function getStaticProps() {
   try {
-    const products = await getProducts();
+    // Cara pertama untuk manggil service satu persatu
+    // const products = await getProducts();
 
     // Cara kedua kalo manggil beberapa service sekaligus pake Promise
-    // const [products] = await Promise.all([getProducts()]);
+    const [products] = await Promise.all([getProducts()]);
     const slicedProducts = products.slice(0, 8);
 
     return {
