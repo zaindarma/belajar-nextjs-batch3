@@ -11,6 +11,11 @@ import React, {
 import { data } from "@/constant/products";
 import Icons from "@/components/atoms/icons";
 import { getProducts } from "@/services/products";
+import { getCurrentUser } from "@/services/auth";
+import { useRouter } from "next/router";
+
+// Endpoint : link backend
+// payload : isi dari link backend
 
 const ProductPage = () => {
   // Sebutan variable di react
@@ -22,6 +27,7 @@ const ProductPage = () => {
   const footerRef = useRef();
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [data, setData] = useState([]);
+  const router = useRouter();
 
   // useEffect buat ngambil dari API
   useEffect(() => {
@@ -34,13 +40,15 @@ const ProductPage = () => {
       }
     };
     fetchProducts();
-  });
+  }, []);
 
   // useEffect buat nanganin side effect.efek dari perubahan suatu data yang dijalankan tiap kali halaman load
   useEffect(() => {
-    const getUsername = localStorage.getItem("username");
-    if (getUsername) {
-      setUsername(getUsername);
+    const token = localStorage.getItem("token");
+    if (token) {
+      setUsername(getCurrentUser(token));
+    } else {
+      router.push("/login");
     }
 
     // Ambil data dari local storage lalu parsing, tambahin login || [] biar ga errpr ketika data dari local storage kosong
@@ -103,10 +111,9 @@ const ProductPage = () => {
 
   // Event handler untuk menjalankan fungsi logout dna ngapus data username & password dari localStorage
   function handleLogout() {
-    localStorage.removeItem("username");
-    localStorage.removeItem("password");
+    localStorage.removeItem("token");
     localStorage.removeItem("cart");
-    window.location.href = "/login";
+    router.push("/login");
   }
 
   useEffect(() => {
