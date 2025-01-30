@@ -9,54 +9,56 @@ import React, {
   useState,
 } from "react";
 import { data } from "@/constant/products";
-import Icons from "@/components/atoms/icons";
+import DoubleArrowUp from "@/components/atoms/icons/DoubleArrowUp";
 import { getProducts } from "@/services/products";
-import { getCurrentUser } from "@/services/auth";
 import { useRouter } from "next/router";
 import { useLogin } from "@/hooks/useLogin";
 import { formatCurrency } from "@/helpers/util/formatCurrency";
+import { useDispatch, useSelector } from "react-redux";
+import { setUsername } from "@/redux/screenSlice/screenSlice";
+import { getCurrentUser } from "@/services/auth";
 
-// Endpoint : link backend
-// payload : isi dari link backend
-// hooks : template fungsi
+///anggap data dari api/be
 
 const ProductPage = ({ data }) => {
-  // Sebutan variable di react
-  const [cart, setCart] = useState([]);
-  // const [total, setTotal] = useState(0); // useMemo gabutuh state
-
-  /** useRef : hooks untuk membuat referensi ke elemen DOM/Fungsi untuk mengakses elemen DOM */
-  const footerRef = useRef();
+  const [cart, setCart] = useState([]); // <- direplace sama redux
+  const [total, setTotal] = useState(0); // kita tidak menggunakan state ini lagi karna kita sudah menggunakan useMemo
+  // useRef : hooks yang digunakan untuk referensi ke elemen DOM/fungsi untuk mengakses elemen DOM
   const [showBackToTop, setShowBackToTop] = useState(false);
-  // const [data, setData] = useState([]); // SSR UDAH GAPERLU INI
+  // const [data, setData] = useState([]); //SSR tidak perlu state ini
+
+  const footerRef = useRef();
   const router = useRouter();
-  const username = useLogin();
+  // const username = useLogin();
 
-  // // useEffect buat ngambil dari API
-  // useEffect(() => {
-  //   const fetchProducts = async () => {
-  //     try {
-  //       const data = await getProducts();
-  //       setData(data.slice(0, 8));
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
-  //   fetchProducts();
-  // }, []);
+  const dispacth = useDispatch(); //mengirim perubahan ke state global
+  const { isLargeScreen, username } = useSelector((state) => state.screen);
+  console.log(isLargeScreen);
 
-  // useEffect buat nanganin side effect.efek dari perubahan suatu data yang dijalankan tiap kali halaman load
   useEffect(() => {
-    // Ambil data dari local storage lalu parsing, tambahin login || [] biar ga errpr ketika data dari local storage kosong
+    const token = localStorage.getItem("token");
+
+    // validasi token, untuk mengecek apakah ada token, jika tidak ada kembali ke login
+    if (token) {
+      dispacth(setUsername(getCurrentUser(token)));
+    } else {
+      router.push("/login");
+    }
+  }, []);
+
+  // useEffect digunakan untul menangani side efek dari perubahan suatu data yang dijalankan setiap halaman di load
+  useEffect(() => {
+    // ambil data dari localstorage lalu parsing, tambahkan logic agar maping tidak error
     setCart(JSON.parse(localStorage.getItem("cart")) || []);
   }, []);
-  /** [] Dependensi array : kalo kosong buat mastiin kalo useEffect dijalanin cuma sekali setiap kali halaman load
-   * kalo ada state didalam dependensi array maka fungsinya untuk mantau perubahan di state tsb
+  /** [] dependensi array : kalo kosong buat memastikan kalo useEffect dijalankan
+   * hanya sekali saat pertama kali halaman di load,
+   * jika ada state didalam dependensi array maka fungsinya untuk menangani perubahan state tersebut
    */
 
-  // Fungsi untuk menambahkan produk ke cart
-  const handleAddToCart = (id) => {
-    // Login untuk ngecek kalo produk dengan id yang sama di tambahkan lebih dari 1 maka akan menambahkan jumlah qty +1
+  // fungsi untuk menambahkan product ke cart
+  const handlerAddToCart = (id) => {
+    // logic untuk mengecek kalau di product terdapat id yang sama maka qty akan ditambahkan 1
     if (cart.find((item) => item.id === id)) {
       setCart(
         cart.map((item) =>
@@ -64,33 +66,26 @@ const ProductPage = ({ data }) => {
         )
       );
     } else {
-      // Kalo fungsi cuma sekali ditrigger maka cuma nambahin satu produk doang ke cart
+      // kalau fungsi hanya sekali ditrigger maka hanya akan menambahkan 1 product saja ke cart
       setCart([...cart, { id, qty: 1 }]);
     }
   };
 
-  /** useCallback : hooks buat nyimpen fungsi ke dalam chace,
-   * tujuannya biar fungsi tsb ga perlu dijalanin/dihitung ulang ketika tidak ada perubahan pada nilainya
+  /** UseCallback: hooks untuk menyimpan fungsi yang kompleks ke dalam cache
+   * tujuannya biar fungsi tersebut tidak perlu dijalankan ulang ketika tidak ada perubahan
    */
+
+  // useMemo : hooks untuk menyimpan hasil komputasi(perhitaungan) yang kompleks ke dalam cache,
+  // tujuannya biar fungsi tsb ga perlu dijalankan/dihitung ulang ketika tidak ada perubahan
   const calculateTotal = useCallback(() => {
     return cart.reduce((total, item) => {
-      const product = data?.find((product) => product.id === item.id);
+      const product = data.find((product) => product.id === item.id);
       return total + product?.price * item.qty;
     }, 0);
   }, [cart, data]);
 
-  // Panggil fungsi useCallback buat dapetin nilai total
+  // panggil fungsi useCallback untuk mendapatkan nilai total
   const cartTotal = calculateTotal();
-
-  /** useMemo : hooks buat nyimpen hasil komputasi(perhitungan)
-   * tujuannya biar fungsi tsb ga perlu dijalanin/dihitung ulang ketika tidak ada perubahan pada state
-   */
-  // const cartTotal = useMemo(() => {
-  //   return cart.reduce((total, item) => {
-  //     const product = data.find((product) => product.id === item.id);
-  //     return total + product.price * item.qty;
-  //   }, 0);
-  // }, [cart]);
 
   useEffect(() => {
     if (cart.length > 0) {
@@ -100,12 +95,11 @@ const ProductPage = ({ data }) => {
       // }, 0);
       // setTotal(sumTotal);
 
-      // Simpen data cart ke local storage lalu convert data cart ke JSON karena local storage cuma bisa nyimpen data JSON
       localStorage.setItem("cart", JSON.stringify(cart));
     }
   }, [cart]);
 
-  // Event handler untuk menjalankan fungsi logout dna ngapus data username & password dari localStorage
+  // event handler untuk menjalankan fungsi logout dan mengapus data di local storage
   function handleLogout() {
     localStorage.removeItem("token");
     localStorage.removeItem("cart");
@@ -114,16 +108,15 @@ const ProductPage = ({ data }) => {
 
   useEffect(() => {
     function handleScroll() {
-      // Ambil nilai offsetTop(posisi vertikal) dari elemen footer yang direfrensikan oleh footerRef
-      const footerTop = footerRef.current.offsetTop; // Ambil batas atas komponen
+      // mengambil nilai offsetTop(posisi vertikal) dari elemen footer yang direferennsikan oleh footerRef
+      const footerTop = footerRef.current.offsetTop; //mengambil batas atas komponen
 
-      // Ambil tinggi innerHeight dari objek window(tinggi viewport tanpa toolbar & scrollbar)
+      // mengambil tinggi innerHeight dari objek window(tinggi viewport tanpa toolbar & scrollbar)
       const viewportHeight = window.innerHeight;
 
-      // Ambil nilai scrollY dari objek window (posisi scroll vertikal(sumbu Y) dilayar)
-      const scrollPosition = window.scrollY;
+      const scrollPosition = window.scrollY; // mengambil posisi vertikal saat ini dari scroll
 
-      // Logic untuk ngecek apakah posisi scroll dilayar telah mencapai elemen footer
+      // logic untuk mengecek apakah posisi scroll telah mencapai elemen footer
       if (scrollPosition + viewportHeight >= footerTop) {
         setShowBackToTop(true);
       } else {
@@ -131,23 +124,30 @@ const ProductPage = ({ data }) => {
       }
     }
 
-    // Event listener buat jalanin fungsi handleScroll setiap event scroll terjadi
+    // event listener buat menjalankan fungsi handleScroll setiap event scroll terjadi
     window.addEventListener("scroll", handleScroll);
 
-    // Unmount
+    // unmount
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, [footerRef]);
 
   function handleBackToTop() {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
-
   return (
     <>
       <div className="flex justify-between items-center bg-black text-white font-bold px-5 py-4">
         <h1 className="text-xl">Hi, {username}</h1>
+        {isLargeScreen ? (
+          <p className="text-white">Desktop</p>
+        ) : (
+          <p className="text-white">Mobile</p>
+        )}
         <Button
           buttonClassname={"bg-red-500 hover:bg-red-700"}
           onClick={handleLogout}
@@ -155,14 +155,14 @@ const ProductPage = ({ data }) => {
           Logout
         </Button>
       </div>
-      <div className="flex px-5 py-8 justify-around">
+      <div className="flex px-5 py-8 gap-4">
         {/* products */}
         <div className="flex flex-col">
           <h1 className="text-3xl font-bold text-blue-500 uppercase mb-4">
             Products
           </h1>
-          <div className="grid grid-cols-2 gap-4">
-            {data?.map((item) => (
+          <div className="grid grid-cols-3 gap-4">
+            {data.map((item) => (
               <CardProduct key={item?.id}>
                 <CardProduct.Header image={item?.image} />
                 <CardProduct.Body
@@ -171,7 +171,7 @@ const ProductPage = ({ data }) => {
                 />
                 <CardProduct.Footer
                   price={item?.price}
-                  handleAddToCart={handleAddToCart}
+                  handleAddToCart={handlerAddToCart}
                   id={item?.id}
                 />
               </CardProduct>
@@ -180,18 +180,18 @@ const ProductPage = ({ data }) => {
         </div>
 
         {/* cart */}
-        {cart.length > 0 && (
-          <div className="w-2/6">
+        {(cart?.length > 0 && (
+          <div className="w-1/3">
             <h1 className="text-3xl font-bold text-blue-500 mb-4 uppercase">
               Cart
             </h1>
             <div className="flex flex-col gap-2">
               {cart.map((item) => {
-                const datas = data?.find((data) => data.id === item.id);
+                const datas = data.find((data) => data.id === item.id);
                 return (
-                  <div className="flex p-4 border rounded-lg" key={item.id}>
+                  <div key={item} className="flex p-4 border rounded-lg">
                     <Image
-                      className="rounded aspect-square object-contain"
+                      className="rounded object-cover object-center"
                       width={100}
                       height={100}
                       src={datas?.image}
@@ -219,53 +219,54 @@ const ProductPage = ({ data }) => {
             </div>
             <div className="flex justify-between px-4 py-2 border mt-2 font-semibold rounded-lg">
               <span>Total</span>
-              <span>{formatCurrency(cartTotal)}</span>
+              <span> {formatCurrency(cartTotal)}</span>
             </div>
           </div>
-        )}
+        )) || <div></div>}
       </div>
 
       {/* footer */}
       {showBackToTop && (
         <div
           onClick={handleBackToTop}
-          className="fixed bottom-20 right-5 bg-gradient-hover rounded-full p-2"
+          className="fixed bottom-20 right-5 bg-gradient-hover p-2 rounded-full"
         >
-          <Icons.DoubleArrowUp />
+          <DoubleArrowUp />
         </div>
       )}
       <footer
         ref={footerRef}
         className="text-center p-5 bg-black text-white w-full"
       >
-        All right reserved &copy; || by Zain
+        All right reserved &copy; || by Ridho
       </footer>
     </>
   );
 };
 
-export default ProductPage;
-
-/** ISR (Incremental Static Regeneration) : teknik menggabungkan SSR dan SSG,
+/**
+ * ISR (Incremental static  regeneration) : teknik menggabungkan SSR dan SSG,
  * dimana halaman akan ditampilkan secara statis namun datanya bisa diupdate secara dinamis
  * jika ada perubahan data
  */
 export async function getStaticProps() {
   try {
-    // Cara pertama untuk manggil service satu persatu
+    // Cara pertama untuk pemanggilan API
     // const products = await getProducts();
 
-    // Cara kedua kalo manggil beberapa service sekaligus pake Promise
+    // Cara kedua jika mau manggil beberapa service sekaligus menggunakan promise
     const [products] = await Promise.all([getProducts()]);
-    const slicedProducts = products.slice(0, 8);
+    const sliceProduct = products.slice(0, 8);
 
     return {
       props: {
-        data: slicedProducts || [],
+        data: sliceProduct || [],
       },
-      revalidate: 60, // Fungsi untuk merefresh/update data setelah 60detik
+      revalidate: 60, // <-- fungsi untuk merefresh/mengupdate data setelah 60 detik
     };
   } catch (error) {
-    console.log(error);
+    console.log("Failed fatching : ", error);
   }
 }
+
+export default ProductPage;
