@@ -1,5 +1,7 @@
+import { isMobileScreenAtom } from "@/atoms/atoms";
 import Button from "@/components/atoms/Button";
 import { useLogin } from "@/hooks/useLogin";
+import { useAtom } from "jotai";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 
@@ -7,7 +9,8 @@ export default function Home() {
   // anggap state ini menyimpann data dari API
   const [data, setData] = useState(true);
 
-  const { isMobileScreen } = useSelector((state) => state.screen);
+  // const { isMobileScreen } = useSelector((state) => state.screen);
+  const [isMobileScreen] = useAtom(isMobileScreenAtom);
   console.log("Mobile :", isMobileScreen);
 
   const username = useLogin();
@@ -32,7 +35,9 @@ export default function Home() {
     <>
       <div
         className={`flex flex-col justify-center items-center h-screen gap-3 ${
-          data ? "bg-black text-white" : "bg-white text-black"
+          data
+            ? "bg-black text-white transition-all ease-in"
+            : "bg-white text-black transition-all ease-out"
         }`}
       >
         {data ? (
