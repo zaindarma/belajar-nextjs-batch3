@@ -20,7 +20,7 @@ import { formatCurrency } from "@/helpers/util/formatCurrency";
 // payload : isi dari link backend
 // hooks : template fungsi
 
-const ProductPage = () => {
+const ProductPage = ({ data }) => {
   // Sebutan variable di react
   const [cart, setCart] = useState([]);
   // const [total, setTotal] = useState(0); // useMemo gabutuh state
@@ -28,22 +28,22 @@ const ProductPage = () => {
   /** useRef : hooks untuk membuat referensi ke elemen DOM/Fungsi untuk mengakses elemen DOM */
   const footerRef = useRef();
   const [showBackToTop, setShowBackToTop] = useState(false);
-  const [data, setData] = useState([]);
+  // const [data, setData] = useState([]); // SSR UDAH GAPERLU INI
   const router = useRouter();
   const username = useLogin();
 
-  // useEffect buat ngambil dari API
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const data = await getProducts();
-        setData(data.slice(0, 8));
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchProducts();
-  }, []);
+  // // useEffect buat ngambil dari API
+  // useEffect(() => {
+  //   const fetchProducts = async () => {
+  //     try {
+  //       const data = await getProducts();
+  //       setData(data.slice(0, 8));
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   };
+  //   fetchProducts();
+  // }, []);
 
   // useEffect buat nanganin side effect.efek dari perubahan suatu data yang dijalankan tiap kali halaman load
   useEffect(() => {
@@ -74,10 +74,10 @@ const ProductPage = () => {
    */
   const calculateTotal = useCallback(() => {
     return cart.reduce((total, item) => {
-      const product = data.find((product) => product.id === item.id);
+      const product = data?.find((product) => product.id === item.id);
       return total + product?.price * item.qty;
     }, 0);
-  }, [cart]);
+  }, [cart, data]);
 
   // Panggil fungsi useCallback buat dapetin nilai total
   const cartTotal = calculateTotal();
@@ -162,7 +162,7 @@ const ProductPage = () => {
             Products
           </h1>
           <div className="grid grid-cols-2 gap-4">
-            {data.map((item) => (
+            {data?.map((item) => (
               <CardProduct key={item?.id}>
                 <CardProduct.Header image={item?.image} />
                 <CardProduct.Body
@@ -187,7 +187,7 @@ const ProductPage = () => {
             </h1>
             <div className="flex flex-col gap-2">
               {cart.map((item) => {
-                const datas = data.find((data) => data.id === item.id);
+                const datas = data?.find((data) => data.id === item.id);
                 return (
                   <div className="flex p-4 border rounded-lg" key={item.id}>
                     <Image
@@ -245,3 +245,25 @@ const ProductPage = () => {
 };
 
 export default ProductPage;
+
+/** Fungsi untuk mengambil data di sisi server sebelum akhirnya di render ke HTML
+ * cocok untuk data-data yang dinamis
+ */
+export async function getServerSideProps() {
+  // Cara pertama untuk manggil service satu persatu
+  try {
+    const products = await getProducts();
+
+    // Cara kedua kalo manggil beberapa service sekaligus pake Promise
+    // const [products] = await Promise.all([getProducts()]);
+    const slicedProducts = products.slice(0, 8);
+
+    return {
+      props: {
+        data: slicedProducts || [],
+      },
+    };
+  } catch (error) {
+    console.log(error);
+  }
+}
