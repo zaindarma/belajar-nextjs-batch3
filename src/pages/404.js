@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React from "react";
 
 const NotFound = () => {
+  const router = useRouter();
   return (
     <div className="bg-black relative overflow-hidden h-screen flex flex-col items-center">
       <Image
@@ -18,15 +20,23 @@ const NotFound = () => {
           <h1 className="font-extrabold text-5xl text-center text-white leading-tight mt-4">
             You are all alone here
           </h1>
-          <Image
-            alt=""
-            className="mt-20 animate-bounce"
-            src={
-              "https://png.pngtree.com/png-clipart/20210308/original/pngtree-british-shorthair-cat-head-profile-png-image_5790491.jpg"
-            }
-            width={100}
-            height={100}
-          />
+          <div
+            onClick={() => router.back()}
+            className="animate-bounce flex flex-col items-center"
+          >
+            <Image
+              alt=""
+              className="mt-20 hover:animate-spin "
+              src={
+                "https://png.pngtree.com/png-clipart/20210308/original/pngtree-british-shorthair-cat-head-profile-png-image_5790491.jpg"
+              }
+              width={100}
+              height={100}
+            />
+            <p className="font-extrabold text-white text-3xl hover:animate-none">
+              Click Me
+            </p>
+          </div>
         </div>
       </div>
     </div>
