@@ -16,7 +16,7 @@ import useSWR from "swr";
 const ProductDetailPage = ({ detailProduct }) => {
   const API = process.env.NEXT_PUBLIC_API;
 
-  const { data } = useSWR(
+  const { data, error, isLoading, isValidating } = useSWR(
     `${API}/products/${detailProduct}`,
     async () => {
       const res = await axios.get(`${API}/products/${detailProduct?.id}`);
@@ -24,8 +24,20 @@ const ProductDetailPage = ({ detailProduct }) => {
     },
     {
       initialData: detailProduct,
+      refreshInterval: 1000,
     }
   );
+
+  if (error)
+    return (
+      <div className="h-screen text-8xl text-center">Gagal mengambail data</div>
+    );
+  if (isLoading)
+    return (
+      <div className="h-screen text-8xl text-center">
+        Sedang memuat data ...
+      </div>
+    );
 
   return (
     <>
@@ -45,6 +57,11 @@ const ProductDetailPage = ({ detailProduct }) => {
             {formatCurrency(data?.price, "en-US", "USD")}
           </p>
         </div>
+        {isValidating && (
+          <p className="text-white font-bold text-6xl mt-4">
+            Sedang Memperbarui Data...
+          </p>
+        )}
       </div>
     </>
   );
