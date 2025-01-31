@@ -41,9 +41,9 @@ export default function Home() {
         }`}
       >
         {data ? (
-          <h1 className="text-5xl font-bold text-white">Data</h1>
+          <h1 className="text-5xl font-bold text-white">Miaw</h1>
         ) : (
-          <h1 className="text-5xl font-bold">Update Data</h1>
+          <h1 className="text-5xl font-bold">Miaw Miaw</h1>
         )}
 
         {isMobileScreen ? <p>MOBILE</p> : <p>Desktop</p>}

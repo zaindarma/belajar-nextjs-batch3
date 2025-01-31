@@ -20,9 +20,9 @@ const CardProduct = ({ children }) => {
   );
 };
 
-function Header({ image }) {
+function Header({ image, link }) {
   return (
-    <Link href="#">
+    <Link href={link}>
       <Image
         src={image}
         alt="card image"
@@ -34,10 +34,10 @@ function Header({ image }) {
   );
 }
 
-function Body({ title, desc }) {
+function Body({ title, desc, link }) {
   return (
     <div className="px-5 pb-5">
-      <Link href={"#"}>
+      <Link href={link}>
         <h3 className="text-3xl font-bold text-slate-900 line-clamp-2">
           {title}
         </h3>

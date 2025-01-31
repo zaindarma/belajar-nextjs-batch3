@@ -17,3 +17,12 @@ export const getProducts = async () => {
     throw new Error("Failed to fetch data : ", error);
   }
 };
+
+export const getProductsById = async (id) => {
+  try {
+    const res = await axios.get(`${API}/products/${id}`);
+    return res.data;
+  } catch (error) {
+    throw new Error("Failed to fetch data : ", error);
+  }
+};

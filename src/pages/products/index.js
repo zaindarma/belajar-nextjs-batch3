@@ -164,8 +164,12 @@ const ProductPage = ({ data }) => {
           <div className="grid grid-cols-3 gap-4">
             {data.map((item) => (
               <CardProduct key={item?.id}>
-                <CardProduct.Header image={item?.image} />
+                <CardProduct.Header
+                  image={item?.image}
+                  link={`/products/${item?.id}`}
+                />
                 <CardProduct.Body
+                  link={`/products/${item?.id}`}
                   title={item?.title}
                   desc={item?.description}
                 />
